@@ -3,36 +3,55 @@
 
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
 
-// Load an existing PDFDocument
-const existingPdfBytes = await Deno.readFile('your-appt.pdf')
-const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-// Draw some text on the first page of the PDFDocument
-const page = pdfDoc.getPage(16);
+async function createDoc() {
+  // Load an existing PDFDocument
+  const existingPdfBytes = await Deno.readFile('your-appt.pdf')
+  const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  // Draw some text on the first page of the PDFDocument
+  const page = pdfDoc.getPage(16);
 
-page.drawText('Visit', {
-  x: 90,
-  y: 100,
-  size: 10,
-  color: rgb(0.5, 0.5, 0.5),
-  font: helveticaFont,
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  page.drawText('Visit', {
+    x: 90,
+    y: 100,
+    size: 10,
+    color: rgb(0.5, 0.5, 0.5),
+    font: helveticaFont,
+  });
+
+
+  page.drawText('breastcancercare.org.uk/oxfordshire', {
+    x: 111,
+    y: 100,
+    size: 10,
+    color: rgb(1, 0.509, 0.149),
+    font: helveticaBoldFont,
+  });
+
+  // Save the PDFDocument and write it to a file
+  // const pdfBytes = await pdfDoc.save();
+  // await Deno.writeFile('modify.pdf', pdfBytes);
+  return pdfDoc.save();
+}
+
+async function handleRequest(request) {
+  const pdfDoc = await createDoc();
+
+  return new Response(
+    pdfDoc.getBytes(),
+    {
+      headers: {
+        "content-type": "application/pdf; charset=UTF-8",
+        "content-length": pdfDoc.getBytes().length,
+      },
+    },
+  );
+}
+
+addEventListener("fetch", (event) => {
+  event.respondWith(handleRequest(event.request));
 });
-
-
-page.drawText('breastcancercare.org.uk/oxfordshire', {
-  x: 111,
-  y: 100,
-  size: 10,
-  color: rgb(1, 0.509, 0.149),
-  font: helveticaBoldFont,
-});
-
-// Save the PDFDocument and write it to a file
-const pdfBytes = await pdfDoc.save();
-await Deno.writeFile('modify.pdf', pdfBytes);
-
-// Done! 💥
-console.log('PDF file written to modify.pdf');
