@@ -1,18 +1,28 @@
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
 
 
-async function createDoc(county) {
+async function createDoc(county, name) {
   // Load an existing PDFDocument
   const existingPdfBytes = await Deno.readFile('your-appt.pdf')
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
-
-  // Update page 17 (zero indexed)
-  const page = pdfDoc.getPage(16);
-
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Update page 2 (zero indexed)
+  const page2 = pdfDoc.getPage(1);
 
-  page.drawText('Visit', {
+  page2.drawText(`This booklet was prepared for ${name}.`, {
+    x: 40,
+    y: 530,
+    size: 16,
+    color: rgb(0.5, 0.5, 0.5),
+    font: helveticaFont,
+  });
+
+  // Update page 17 (zero indexed)
+  const page17 = pdfDoc.getPage(16);
+
+  page17.drawText('Visit', {
     x: 90,
     y: 100,
     size: 10,
@@ -20,7 +30,7 @@ async function createDoc(county) {
     font: helveticaFont,
   });
 
-  page.drawText('breastcancercare.org.uk/' + county, {
+  page17.drawText('breastcancercare.org.uk/' + county, {
     x: 111,
     y: 100,
     size: 10,
@@ -32,11 +42,10 @@ async function createDoc(county) {
 }
 
 async function handleRequest(request) {
-  var county = 'cornwall';
-  if (request.url.search('/county/') > -1) {
-    var county = request.url.split('/county/')[1];
-  }
-  const pdfDoc = await createDoc(county);
+  const u=new URL(request.url);
+  const county = u.searchParams.get('county');
+  const name = u.searchParams.get('name');
+  const pdfDoc = await createDoc(county, name);
   return new Response(
     pdfDoc,
     {
