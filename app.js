@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
 
 
-async function createDoc(county, name) {
+async function createDoc(county, name, code) {
   // Load an existing PDFDocument
   const existingPdfBytes = await Deno.readFile('your-appt.pdf')
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -15,6 +15,14 @@ async function createDoc(county, name) {
     x: 40,
     y: 530,
     size: 16,
+    color: rgb(1, 0.509, 0.149),
+    font: helveticaFont,
+  });
+
+  page2.drawText(`Personalised details are available at breastcancernow.org.uk/${code}`, {
+    x: 40,
+    y: 510,
+    size: 10,
     color: rgb(0.5, 0.5, 0.5),
     font: helveticaFont,
   });
@@ -45,7 +53,8 @@ async function handleRequest(request) {
   const u=new URL(request.url);
   const county = u.searchParams.get('county');
   const name = u.searchParams.get('name');
-  const pdfDoc = await createDoc(county, name);
+  const code = u.searchParams.get('code');
+  const pdfDoc = await createDoc(county, name, code);
   return new Response(
     pdfDoc,
     {
