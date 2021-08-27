@@ -1,5 +1,11 @@
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
 
+const groups = {
+  'oxfordshire': ['Oxford', '11am on the first Thursday of the month'],
+  'cornwall': ['Truro', '6pm on the second Tuesday of the month'],
+  'devon': ['Exeter', '6pm on the first Tuesday of the month'],
+}
+
 
 async function createDoc(county, name, code) {
   // Load an existing PDFDocument
@@ -7,6 +13,7 @@ async function createDoc(county, name, code) {
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const placeDetails = groups[county] || ['Bath', '6pm on the first Thursday of the month'];
   
   // Update page 2 (zero indexed)
   const page2 = pdfDoc.getPage(1);
@@ -19,13 +26,23 @@ async function createDoc(county, name, code) {
     font: helveticaFont,
   });
 
-  page2.drawText(`Personalised details are available at breastcancernow.org.uk/${code}`, {
+  page2.drawText(`Your closest meetup is in ${placeDetails[0]}, at ${placeDetails[1]}.`, {
     x: 40,
-    y: 510,
-    size: 10,
+    y: 505,
+    size: 9,
     color: rgb(0.5, 0.5, 0.5),
     font: helveticaFont,
   });
+
+  page2.drawText(`Personalised details are available at breastcancernow.org.uk/${code}`, {
+    x: 40,
+    y: 490,
+    size: 9,
+    color: rgb(0.5, 0.5, 0.5),
+    font: helveticaFont,
+  });
+
+
 
   // Update page 17 (zero indexed)
   const page17 = pdfDoc.getPage(16);
