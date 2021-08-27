@@ -1,15 +1,12 @@
-// To run this script with Deno:
-//   deno run --allow-write https://gist.githubusercontent.com/Hopding/8304b9f07c52904587f7b45fae4bcb8c/raw/pdf-lib-deno-create-script.ts
-
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
 
 
-async function createDoc() {
+async function createDoc(county) {
   // Load an existing PDFDocument
   const existingPdfBytes = await Deno.readFile('your-appt.pdf')
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-  // Draw some text on the first page of the PDFDocument
+  // Update page 17 (zero indexed)
   const page = pdfDoc.getPage(16);
 
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -23,8 +20,7 @@ async function createDoc() {
     font: helveticaFont,
   });
 
-
-  page.drawText('breastcancercare.org.uk/oxfordshire', {
+  page.drawText('breastcancercare.org.uk/' + county, {
     x: 111,
     y: 100,
     size: 10,
@@ -32,21 +28,21 @@ async function createDoc() {
     font: helveticaBoldFont,
   });
 
-  // Save the PDFDocument and write it to a file
-  // const pdfBytes = await pdfDoc.save();
-  // await Deno.writeFile('modify.pdf', pdfBytes);
   return pdfDoc.save();
 }
 
 async function handleRequest(request) {
-  const pdfDoc = await createDoc();
-
+  var county = 'cornwall';
+  if (request.url.search('/county/') > -1) {
+    var county = request.url.split('/county/')[1];
+  }
+  const pdfDoc = await createDoc(county);
   return new Response(
-    pdfDoc.getBytes(),
+    pdfDoc,
     {
       headers: {
         "content-type": "application/pdf; charset=UTF-8",
-        "content-length": pdfDoc.getBytes().length,
+        "content-length": pdfDoc.length,
       },
     },
   );
