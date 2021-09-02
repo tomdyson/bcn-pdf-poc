@@ -1,66 +1,36 @@
 import { PDFDocument, StandardFonts, rgb, degrees } from 'https://cdn.skypack.dev/pdf-lib@';
+import fontkit from 'https://cdn.skypack.dev/@pdf-lib/fontkit';
 
-const groups = {
-  'oxfordshire': ['Oxford', '11am on the first Thursday of the month'],
-  'cornwall': ['Truro', '6pm on the second Tuesday of the month'],
-  'devon': ['Exeter', '6pm on the first Tuesday of the month'],
-}
-
-
-async function createDoc(county, name, code) {
+async function createDoc(county) {
   // Load an existing PDFDocument
-  const existingPdfBytes = await Deno.readFile('your-appt.pdf')
+  const existingPdfBytes = await Deno.readFile('your-appt.pdf');
+  const fontBytes = await Deno.readFile('WorkSans-SemiBold.ttf');
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const placeDetails = groups[county] || ['Bath', '6pm on the first Thursday of the month'];
+  // Embed BCN's font
+  pdfDoc.registerFontkit(fontkit);
+  const workSansMediumFont = await pdfDoc.embedFont(fontBytes);
+  // const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  // const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
-  // Update page 2 (zero indexed)
-  const page2 = pdfDoc.getPage(1);
-
-  page2.drawText(`This booklet was prepared for ${name}.`, {
-    x: 40,
-    y: 530,
-    size: 16,
-    color: rgb(1, 0.509, 0.149),
-    font: helveticaFont,
-  });
-
-  page2.drawText(`Your closest meetup is in ${placeDetails[0]}, at ${placeDetails[1]}.`, {
-    x: 40,
-    y: 505,
-    size: 9,
-    color: rgb(0.5, 0.5, 0.5),
-    font: helveticaFont,
-  });
-
-  page2.drawText(`Personalised details are available at breastcancernow.org.uk/${code}`, {
-    x: 40,
-    y: 490,
-    size: 9,
-    color: rgb(0.5, 0.5, 0.5),
-    font: helveticaFont,
-  });
-
-
-
   // Update page 17 (zero indexed)
-  const page17 = pdfDoc.getPage(16);
+  const page17 = pdfDoc.getPage(23);
 
-  page17.drawText('Visit', {
-    x: 90,
-    y: 100,
-    size: 10,
-    color: rgb(0.5, 0.5, 0.5),
-    font: helveticaFont,
+  // Draw a white background over the old link
+  page17.drawRectangle({
+    x: 310,
+    y: 175,
+    width: 390,
+    height: 22,
+    color: rgb(1, 1, 1),
   });
 
-  page17.drawText('breastcancercare.org.uk/' + county, {
-    x: 111,
-    y: 100,
-    size: 10,
-    color: rgb(1, 0.509, 0.149),
-    font: helveticaBoldFont,
+  // Draw the new link
+  page17.drawText('breastcancernow.org/' + county, {
+    x: 310,
+    y: 180,
+    size: 16,
+    color: rgb(0.92, 0.106, 0.337),
+    font: workSansMediumFont,
   });
 
   return pdfDoc.save();
@@ -69,9 +39,7 @@ async function createDoc(county, name, code) {
 async function handleRequest(request) {
   const u=new URL(request.url);
   const county = u.searchParams.get('county');
-  const name = u.searchParams.get('name');
-  const code = u.searchParams.get('code');
-  const pdfDoc = await createDoc(county, name, code);
+  const pdfDoc = await createDoc(county);
   return new Response(
     pdfDoc,
     {
