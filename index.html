@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/tachyons/css/tachyons.min.css">
+    <title>BCN PDF Generation</title>
+</head>
+
+<body class="w-80 sans-serif bg-white">
+    <article class="pa3 pa5">
+        <h1 class="f4 f1-m f1-l mt0 mb0">PDF leaflet generator</h1>
+        <form class="pt4 black-80" action="https://bcn-pdf-poc.deno.dev/" method="get">
+            <div class="measure">
+                <label for="county" class="f6 b db mb2">County</label>
+                <input id="county" name="county" class="input-reset ba b--black-20 pa2 mb2 db w-100" type="text" aria-describedby="name-desc">
+                <small id="name-desc" class="f6 black-60 db mb2">The name of the county for this PDF.</small>
+            </div>
+            <div class="mt3">
+                <input class="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6" type="submit" value="Generate PDF">
+            </div>
+        </form>
+
+    </article>
+</body>
+
+</html>
